@@ -6,6 +6,7 @@ const pokemonRoutes = require('./routes/pokemon');
 const teamRoutes = require('./routes/teams');
 const battleRoutes = require('./routes/battle');
 const typesRoutes = require('./routes/types');
+const imageProxyRoutes = require('./routes/image-proxy');
 
 const app = express();
 app.use(cors());
@@ -26,6 +27,7 @@ app.use('/api/pokemon', pokemonRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/battle', battleRoutes);
 app.use('/api/types', typesRoutes);
+app.use('/api/image-proxy', imageProxyRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

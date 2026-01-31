@@ -53,7 +53,7 @@ import { ApiService, TeamWithPower, BattleResult, BattleRound } from '../../serv
           <div class="battle-lineup battle-lineup-top">
             @for (p of result.team1Roster || []; track p.id) {
               <div class="battle-lineup-icon" [class.fainted]="isFainted1(p.id)">
-                <img [src]="safeImageUrl(p.image)" [alt]="p.name" (error)="onImgError($event)" />
+                <img [src]="safeImageUrl(p.name, p.image)" [alt]="p.name" (error)="onImgError($event)" />
               </div>
             }
           </div>
@@ -65,21 +65,23 @@ import { ApiService, TeamWithPower, BattleResult, BattleRound } from '../../serv
               <button type="button" class="btn btn-dark btn-sm" (click)="nextRound()" [disabled]="currentRoundIndex >= result.rounds.length - 1">Next</button>
             </div>
             <div class="battle-fighters">
-              <div class="battle-fighter battle-fighter-left">
+              <div class="battle-fighter battle-fighter-left" [class.round-winner]="roundWinner() === 'team1'">
                 <div class="battle-hp-bar">
                   <div class="battle-hp-fill" [style.width.%]="currentRoundHp1Percent()"></div>
                 </div>
-                <img [src]="safeImageUrl(currentRound().team1Pokemon?.image)" [alt]="currentRound().team1Pokemon.name" class="battle-fighter-img" (error)="onImgError($event)" />
+                <div class="battle-hp-text">{{ currentRound().afterRound?.team1Pokemon?.life ?? 0 }} / {{ currentRound().team1Pokemon?.life ?? 0 }} HP</div>
+                <img [src]="safeImageUrl(currentRound().team1Pokemon?.name, currentRound().team1Pokemon?.image)" [alt]="currentRound().team1Pokemon.name" class="battle-fighter-img" (error)="onImgError($event)" />
                 <div class="battle-fighter-name">{{ currentRound().team1Pokemon.name }}</div>
                 <div class="battle-power-badge">
                   <span class="battle-power-num">{{ currentRound().team1Pokemon.power }}</span>
                 </div>
               </div>
-              <div class="battle-fighter battle-fighter-right">
+              <div class="battle-fighter battle-fighter-right" [class.round-winner]="roundWinner() === 'team2'">
                 <div class="battle-hp-bar">
                   <div class="battle-hp-fill" [style.width.%]="currentRoundHp2Percent()"></div>
                 </div>
-                <img [src]="safeImageUrl(currentRound().team2Pokemon?.image)" [alt]="currentRound().team2Pokemon.name" class="battle-fighter-img" (error)="onImgError($event)" />
+                <div class="battle-hp-text">{{ currentRound().afterRound?.team2Pokemon?.life ?? 0 }} / {{ currentRound().team2Pokemon?.life ?? 0 }} HP</div>
+                <img [src]="safeImageUrl(currentRound().team2Pokemon?.name, currentRound().team2Pokemon?.image)" [alt]="currentRound().team2Pokemon.name" class="battle-fighter-img" (error)="onImgError($event)" />
                 <div class="battle-fighter-name">{{ currentRound().team2Pokemon.name }}</div>
                 <div class="battle-power-badge battle-power-badge-right">
                   <span class="battle-power-num">{{ currentRound().team2Pokemon.power }}</span>
@@ -91,7 +93,7 @@ import { ApiService, TeamWithPower, BattleResult, BattleRound } from '../../serv
           <div class="battle-lineup battle-lineup-bottom">
             @for (p of result.team2Roster || []; track p.id) {
               <div class="battle-lineup-icon" [class.fainted]="isFainted2(p.id)">
-                <img [src]="safeImageUrl(p.image)" [alt]="p.name" (error)="onImgError($event)" />
+                <img [src]="safeImageUrl(p.name, p.image)" [alt]="p.name" (error)="onImgError($event)" />
               </div>
             }
           </div>
@@ -120,9 +122,8 @@ export class BattleComponent implements OnInit {
   error = '';
   placeholderImg = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96"><rect fill="#e8e4df" width="96" height="96"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#6b6560" font-size="24" font-family="sans-serif">?</text></svg>');
 
-  safeImageUrl(url: string | undefined | null): string {
-    const u = (url || '').trim();
-    return u && u.startsWith('http') ? u : this.placeholderImg;
+  safeImageUrl(name: string | undefined | null, url: string | undefined | null): string {
+    return this.api.getPokemonImageUrl(name, url) || this.placeholderImg;
   }
 
   onImgError(e: Event): void {
@@ -185,5 +186,14 @@ export class BattleComponent implements OnInit {
     const max = r.team2Pokemon?.life ?? 1;
     const cur = r.afterRound?.team2Pokemon?.life ?? 0;
     return max > 0 ? Math.max(0, (100 * cur) / max) : 0;
+  }
+
+  roundWinner(): 'team1' | 'team2' | null {
+    const r = this.currentRound();
+    const life1 = r.afterRound?.team1Pokemon?.life ?? 0;
+    const life2 = r.afterRound?.team2Pokemon?.life ?? 0;
+    if (life1 > 0 && life2 <= 0) return 'team1';
+    if (life2 > 0 && life1 <= 0) return 'team2';
+    return null;
   }
 }

@@ -24,7 +24,7 @@ import { CommonModule } from '@angular/common';
             <div class="col-sm-6 col-lg-4">
               <div class="pokemon-card app-card h-100">
                 <div class="pokemon-card-image-wrap">
-                  <img [src]="p.image || 'https://via.placeholder.com/160?text=?'" [alt]="p.name" class="pokemon-card-image">
+                  <img [src]="imageSrc(p.name, p.image)" [alt]="p.name" class="pokemon-card-image" (error)="onImgError($event)">
                 </div>
                 <div class="pokemon-card-body">
                   <h3 class="pokemon-card-name">{{ p.name }}</h3>
@@ -50,8 +50,18 @@ export class PokemonListComponent implements OnInit {
   pokemons: Pokemon[] = [];
   loading = false;
   error = '';
+  placeholder = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="160" height="120" viewBox="0 0 160 120"><rect fill="#e8e4df" width="160" height="120"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#6b6560" font-size="14">?</text></svg>');
 
   constructor(private api: ApiService) {}
+
+  imageSrc(name: string | undefined, url: string | undefined): string {
+    return this.api.getPokemonImageUrl(name, url) || this.placeholder;
+  }
+
+  onImgError(e: Event): void {
+    const el = e.target as HTMLImageElement;
+    if (el?.src !== this.placeholder) el.src = this.placeholder;
+  }
 
   ngOnInit() {
     this.loading = true;

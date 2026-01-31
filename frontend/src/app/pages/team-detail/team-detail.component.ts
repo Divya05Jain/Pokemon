@@ -26,7 +26,7 @@ import { ApiService, TeamDetail } from '../../services/api.service';
           @for (m of team.members; track m.position) {
             <div class="col-6 col-md-4 col-lg-2">
               <div class="member-card app-card h-100 text-center p-3">
-                <img [src]="m.pokemon?.image || 'https://via.placeholder.com/80?text=?'" [alt]="m.pokemon?.name" class="member-card-img">
+                <img [src]="imageSrc(m.pokemon?.name, m.pokemon?.image)" [alt]="m.pokemon?.name" class="member-card-img" (error)="onImgError($event)">
                 <div class="member-card-name">{{ m.pokemon?.name }}</div>
                 <div class="member-card-stats">P {{ m.pokemon?.power }} · L {{ m.pokemon?.life }}</div>
               </div>
@@ -41,8 +41,18 @@ export class TeamDetailComponent implements OnInit {
   team: TeamDetail | null = null;
   loading = false;
   error = '';
+  placeholder = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><rect fill="#e8e4df" width="80" height="80"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#6b6560" font-size="12">?</text></svg>');
 
   constructor(private route: ActivatedRoute, private api: ApiService) {}
+
+  imageSrc(name: string | undefined, url: string | undefined): string {
+    return this.api.getPokemonImageUrl(name, url) || this.placeholder;
+  }
+
+  onImgError(e: Event): void {
+    const el = e.target as HTMLImageElement;
+    if (el?.src !== this.placeholder) el.src = this.placeholder;
+  }
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');

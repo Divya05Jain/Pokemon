@@ -4,6 +4,13 @@ import { environment } from '../../environments/environment';
 
 const BASE = environment.apiUrl;
 
+const POKEAPI_SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
+const POKEMON_DEX: Record<string, number> = {
+  bulbasaur: 1, ivysaur: 2, venusaur: 3, charmander: 4, charmeleon: 5, charizard: 6,
+  squirtle: 7, wartortle: 8, blastoise: 9, oddish: 43, gloom: 44, poliwag: 60,
+  bellsprout: 69, vulpix: 37, ninetales: 38, psyduck: 54, golduck: 55, growlithe: 58,
+};
+
 export interface PokemonType {
   id: string;
   name: string;
@@ -65,6 +72,20 @@ export interface BattleResult {
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   constructor(private http: HttpClient) {}
+
+  getImageProxyUrl(url: string | undefined | null): string {
+    const u = (url || '').trim();
+    if (!u || (!u.startsWith('http://') && !u.startsWith('https://'))) return '';
+    return `${BASE}/image-proxy?url=${encodeURIComponent(u)}`;
+  }
+
+  getPokemonImageUrl(name: string | undefined | null, dbImageUrl?: string | null): string {
+    const key = (name || '').toLowerCase().trim();
+    const id = POKEMON_DEX[key];
+    if (id) return `${POKEAPI_SPRITE_BASE}/${id}.png`;
+    const proxy = this.getImageProxyUrl(dbImageUrl);
+    return proxy || '';
+  }
 
   getTypes() {
     return this.http.get<PokemonType[]>(`${BASE}/types`);
