@@ -1,0 +1,16 @@
+<header class="app-header">
+  <div class="container">
+    <a class="app-brand" routerLink="/">Pokémon Battle</a>
+    <button class="nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Menu">
+      <span class="nav-toggle-icon"></span>
+    </button>
+    <nav class="app-nav collapse" id="nav">
+      <a class="app-nav-link" routerLink="/pokemon" routerLinkActive="active">Pokémon</a>
+      <a class="app-nav-link" routerLink="/teams" routerLinkActive="active">Teams</a>
+      <a class="app-nav-link" routerLink="/battle" routerLinkActive="active">Battle</a>
+    </nav>
+  </div>
+</header>
+<main class="app-main">
+  <router-outlet></router-outlet>
+</main>
