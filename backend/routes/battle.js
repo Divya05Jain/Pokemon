@@ -33,8 +33,20 @@ router.post('/simulate', async (req, res) => {
       return res.status(400).json({ error: 'Both teams must have 6 pokemons' });
     }
 
-    const team1 = t1Members.map((m) => ({ ...m.pokemon, position: m.position }));
-    const team2 = t2Members.map((m) => ({ ...m.pokemon, position: m.position }));
+    const toPokemon = (m) => {
+      const p = m.pokemon || m;
+      return {
+        id: p.id,
+        name: p.name,
+        type: p.type,
+        image: p.image || null,
+        power: p.power,
+        life: p.life,
+        position: m.position,
+      };
+    };
+    const team1 = t1Members.map(toPokemon);
+    const team2 = t2Members.map(toPokemon);
 
     const rounds = [];
     let idx1 = 0;
@@ -67,12 +79,12 @@ router.post('/simulate', async (req, res) => {
 
       pushRound(
         {
-          p1: { id: p1.id, name: p1.name, life: life1Before, power: p1.power },
-          p2: { id: p2.id, name: p2.name, life: life2Before, power: p2.power },
+          p1: { id: p1.id, name: p1.name, image: p1.image, life: life1Before, power: p1.power },
+          p2: { id: p2.id, name: p2.name, image: p2.image, life: life2Before, power: p2.power },
         },
         {
-          p1: { id: p1.id, name: p1.name, life: p1.currentLife, power: p1.power },
-          p2: { id: p2.id, name: p2.name, life: p2.currentLife, power: p2.power },
+          p1: { id: p1.id, name: p1.name, image: p1.image, life: p1.currentLife, power: p1.power },
+          p2: { id: p2.id, name: p2.name, image: p2.image, life: p2.currentLife, power: p2.power },
         },
         `Round: ${p1.name} vs ${p2.name}. Damage: ${damageToP1} to ${p1.name}, ${damageToP2} to ${p2.name}.`
       );
@@ -94,11 +106,23 @@ router.post('/simulate', async (req, res) => {
     }
 
     const winner = idx2 >= team2.length ? 'team1' : idx1 >= team1.length ? 'team2' : null;
+    const team1Roster = team1.map((p) => ({ id: p.id, name: p.name, image: p.image || '' }));
+    const team2Roster = team2.map((p) => ({ id: p.id, name: p.name, image: p.image || '' }));
+    const fainted1 = new Set();
+    const fainted2 = new Set();
+    rounds.forEach((r) => {
+      if (r.afterRound.team1Pokemon.life <= 0) fainted1.add(r.team1Pokemon.id);
+      if (r.afterRound.team2Pokemon.life <= 0) fainted2.add(r.team2Pokemon.id);
+    });
     res.json({
       winner,
       rounds,
       team1Remaining: Math.max(0, team1.length - idx1),
       team2Remaining: Math.max(0, team2.length - idx2),
+      team1Roster,
+      team2Roster,
+      fainted1: [...fainted1],
+      fainted2: [...fainted2],
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

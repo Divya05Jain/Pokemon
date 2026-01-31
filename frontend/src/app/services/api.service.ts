@@ -40,9 +40,15 @@ export interface TeamDetail {
 
 export interface BattleRound {
   description: string;
-  team1Pokemon: { id: string; name: string; life: number; power: number };
-  team2Pokemon: { id: string; name: string; life: number; power: number };
+  team1Pokemon: { id: string; name: string; image?: string; life: number; power: number };
+  team2Pokemon: { id: string; name: string; image?: string; life: number; power: number };
   afterRound: { team1Pokemon: { life: number }; team2Pokemon: { life: number } };
+}
+
+export interface BattleRosterItem {
+  id: string;
+  name: string;
+  image?: string;
 }
 
 export interface BattleResult {
@@ -50,6 +56,10 @@ export interface BattleResult {
   rounds: BattleRound[];
   team1Remaining: number;
   team2Remaining: number;
+  team1Roster?: BattleRosterItem[];
+  team2Roster?: BattleRosterItem[];
+  fainted1?: string[];
+  fainted2?: string[];
 }
 
 @Injectable({ providedIn: 'root' })
